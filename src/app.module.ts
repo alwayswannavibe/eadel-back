@@ -1,17 +1,26 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import * as joi from 'joi';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
 
-const { ENV } = process.env;
+const { NODE_ENV } = process.env;
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ENV === 'dev' ? '.dev.env' : '.test.env',
-      ignoreEnvFile: ENV === 'prod',
+      envFilePath: NODE_ENV === 'dev' ? '.dev.env' : '.test.env',
+      ignoreEnvFile: NODE_ENV === 'prod',
+      validationSchema: joi.object({
+        NODE_ENV: joi.string().valid('dev', 'prod', 'test'),
+        DB_HOST: joi.string().required(),
+        DB_PORT: joi.string().required(),
+        DB_USERNAME: joi.string().required(),
+        DB_PASSWORD: joi.string().required(),
+        DB_DATABASE: joi.string().required(),
+      }),
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
