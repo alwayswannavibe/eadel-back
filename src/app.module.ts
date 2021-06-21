@@ -4,6 +4,8 @@ import {AppService} from './app.service';
 import {ConfigModule} from '@nestjs/config';
 import {GraphQLModule} from '@nestjs/graphql';
 import {join} from 'path';
+import {TypeOrmModule} from '@nestjs/typeorm';
+import ormconfig from './ormconfig';
 
 @Module({
   imports: [
@@ -11,6 +13,7 @@ import {join} from 'path';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    TypeOrmModule.forRoot(ormconfig),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
     }),
