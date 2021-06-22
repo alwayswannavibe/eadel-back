@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as joi from 'joi';
-import { AppService } from './app.service';
-import { AppController } from './app.controller';
+import { AppController } from '@app/app.controller';
+import { AppService } from '@app/app.service';
+import { UserModule } from '@app/user/user.module';
 
 const { NODE_ENV } = process.env;
 
@@ -32,6 +33,7 @@ const { NODE_ENV } = process.env;
       synchronize: NODE_ENV !== 'prod',
       logging: true,
     }),
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
