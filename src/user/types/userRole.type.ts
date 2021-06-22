@@ -1,5 +1,9 @@
-export enum UserRoleType {
-  Client = 'client',
-  Delivery = 'delivery',
-  Owner = 'owner',
+import { registerEnumType } from '@nestjs/graphql';
+
+export enum UserRole {
+  Client,
+  Delivery,
+  Owner,
 }
+
+registerEnumType(UserRole, { name: 'UserRole' });

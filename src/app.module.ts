@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as joi from 'joi';
 import { UserModule } from '@app/user/user.module';
 import { UserEntity } from '@app/user/entities/user.entity';
-import { BaseEntity } from 'typeorm';
+import { GraphQLModule } from '@nestjs/graphql';
 
 const { NODE_ENV } = process.env;
 
@@ -33,6 +33,9 @@ const { NODE_ENV } = process.env;
       synchronize: NODE_ENV !== 'prod',
       logging: true,
       entities: [UserEntity],
+    }),
+    GraphQLModule.forRoot({
+      autoSchemaFile: true,
     }),
     UserModule,
   ],
