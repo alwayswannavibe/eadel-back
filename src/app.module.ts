@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as joi from 'joi';
-import { AppController } from '@app/app.controller';
-import { AppService } from '@app/app.service';
 import { UserModule } from '@app/user/user.module';
+import { UserEntity } from '@app/user/entities/user.entity';
+import { BaseEntity } from 'typeorm';
 
 const { NODE_ENV } = process.env;
 
@@ -32,10 +32,9 @@ const { NODE_ENV } = process.env;
       database: process.env.DB_DATABASE,
       synchronize: NODE_ENV !== 'prod',
       logging: true,
+      entities: [UserEntity],
     }),
     UserModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
