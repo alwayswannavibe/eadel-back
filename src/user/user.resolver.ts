@@ -4,7 +4,7 @@ import {
 } from '@nestjs/graphql';
 import { UserService } from '@app/user/user.service';
 import { CreateAccountDto } from '@app/user/dtos/createAccount.dto';
-import { ResponseDto } from '@app/common/dtos/response.dto';
+import { MutationResponseDto } from '@app/common/dtos/mutationResponse.dto';
 
 @Resolver(() => UserEntity)
 export class UserResolver {
@@ -15,10 +15,10 @@ export class UserResolver {
     return true;
   }
 
-  @Mutation(() => ResponseDto)
+  @Mutation(() => MutationResponseDto)
   async createAccount(
     @Args('input') createAccountDto: CreateAccountDto,
-  ): Promise<ResponseDto> {
+  ): Promise<MutationResponseDto> {
     return this.userService.createAccount(createAccountDto);
   }
 }

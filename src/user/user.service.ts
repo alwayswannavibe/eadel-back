@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from '@app/user/entities/user.entity';
-import { ResponseDto } from '@app/common/dtos/response.dto';
+import { MutationResponseDto } from '@app/common/dtos/mutationResponse.dto';
 import { CreateAccountDto } from '@app/user/dtos/createAccount.dto';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class UserService {
 
   async createAccount(
     createAccountDto: CreateAccountDto,
-  ): Promise<ResponseDto> {
+  ): Promise<MutationResponseDto> {
     const isEmailUsed = await this.userRepository.findOne({
       email: createAccountDto.email,
     });
