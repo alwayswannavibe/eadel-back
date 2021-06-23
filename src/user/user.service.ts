@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { LoginResponseDto } from '@app/user/dtos/loginResponse.dto';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@app/jwt/jwt.service';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,7 @@ export class UserService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private configService: ConfigService,
+    private jwtService: JwtService,
   ) {}
 
   async createAccount(
@@ -61,14 +63,15 @@ export class UserService {
 
     return {
       isSuccess: true,
-      token: jwt.sign(
-        { id: user.id },
-        this.configService.get<string>('JWT_SECRET'),
-      ),
+      token: this.jwtService.sign({ id: user.id }),
     };
   }
 
   async checkPassword(password: string, user): Promise<boolean> {
     return bcrypt.compare(password, user.password);
+  }
+
+  async getUserById(id: number): Promise<UserEntity> {
+    return this.userRepository.findOne(id);
   }
 }

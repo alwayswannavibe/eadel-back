@@ -1,6 +1,6 @@
 import { UserEntity } from '@app/user/entities/user.entity';
 import {
-  Args, Mutation, Query, Resolver,
+  Args, Context, Mutation, Query, Resolver,
 } from '@nestjs/graphql';
 import { UserService } from '@app/user/user.service';
 import { CreateAccountDto } from '@app/user/dtos/createAccount.dto';
@@ -12,9 +12,12 @@ import { LoginResponseDto } from '@app/user/dtos/loginResponse.dto';
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query(() => Boolean)
-  hi() {
-    return true;
+  @Query(() => UserEntity)
+  me(@Context() ctx) {
+    if (!ctx.user) {
+      return 'error';
+    }
+    return ctx.user;
   }
 
   @Mutation(() => MutationResponseDto)
