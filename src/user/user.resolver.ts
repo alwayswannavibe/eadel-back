@@ -7,17 +7,18 @@ import { CreateAccountDto } from '@app/user/dtos/createAccount.dto';
 import { MutationResponseDto } from '@app/common/dtos/mutationResponse.dto';
 import { LoginDto } from '@app/user/dtos/login.dto';
 import { LoginResponseDto } from '@app/user/dtos/loginResponse.dto';
+import { UseGuards } from '@nestjs/common/decorators/core';
+import { AuthGuard } from '@app/auth/auth.guard';
+import { User } from '@app/auth/decorators/user.decorator';
 
 @Resolver(() => UserEntity)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
   @Query(() => UserEntity)
-  me(@Context() ctx) {
-    if (!ctx.user) {
-      return 'error';
-    }
-    return ctx.user;
+  @UseGuards(AuthGuard)
+  me(@User() user: UserEntity) {
+    return user;
   }
 
   @Mutation(() => MutationResponseDto)
