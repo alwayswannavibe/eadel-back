@@ -18,8 +18,10 @@ export class JwtMiddleware implements NestMiddleware {
       const payload = this.jwtService.verify(token.toString());
       // eslint-disable-next-line no-prototype-builtins
       if (typeof payload !== 'string' && payload.hasOwnProperty('id')) {
-        const user = await this.userService.getUserById(+payload.id);
-        req.user = user;
+        const response = await this.userService.getUserById(+payload.id);
+        if (response.user) {
+          req.user = response.user;
+        }
       }
     }
     next();

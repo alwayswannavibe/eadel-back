@@ -1,8 +1,8 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { MutationResponseDto } from '@app/common/dtos/mutationResponse.dto';
+import { CoreResponse } from '@app/common/dtos/coreResponse.dto';
 
 @ObjectType()
-export class LoginResponseDto extends MutationResponseDto {
+export class LoginResponseDto extends CoreResponse {
   @Field(() => String, { nullable: true })
   token?: string;
 }

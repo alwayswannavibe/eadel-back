@@ -1,4 +1,6 @@
-import { BeforeInsert, Column, Entity } from 'typeorm';
+import {
+  BeforeInsert, BeforeUpdate, Column, Entity
+} from 'typeorm';
 import { UserRole } from '@app/user/types/userRole.type';
 import { CoreEntity } from '@app/common/entities/core.entity';
 import { Field, ObjectType } from '@nestjs/graphql';
@@ -24,6 +26,7 @@ export class UserEntity extends CoreEntity {
   role: UserRole;
 
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword(): Promise<void> {
     this.password = await bcrypt.hash(this.password, 10);
   }
