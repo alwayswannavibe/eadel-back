@@ -1,4 +1,6 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer, Module, NestModule, RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as joi from 'joi';
@@ -6,7 +8,9 @@ import { UserModule } from '@app/user/user.module';
 import { UserEntity } from '@app/user/entities/user.entity';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtMiddleware } from '@app/jwt/middlewares/jwt.middleware';
-import { JwtModule } from './jwt/jwt.module';
+import { JwtModule } from '@app/jwt/jwt.module';
+import { EmailEntity } from '@app/email/entities/email.entity';
+import { EmailModule } from '@app/email/email.module';
 
 const { NODE_ENV } = process.env;
 
@@ -35,7 +39,7 @@ const { NODE_ENV } = process.env;
       database: process.env.DB_DATABASE,
       synchronize: NODE_ENV !== 'prod',
       logging: true,
-      entities: [UserEntity],
+      entities: [UserEntity, EmailEntity],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -45,6 +49,7 @@ const { NODE_ENV } = process.env;
       jwtSecret: process.env.JWT_SECRET,
     }),
     UserModule,
+    EmailModule,
   ],
 })
 export class AppModule implements NestModule {

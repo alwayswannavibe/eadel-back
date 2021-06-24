@@ -11,14 +11,16 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@app/jwt/jwt.service';
 import { UserProfileResponse } from '@app/user/dtos/userProfileResponse.dto';
 import { UpdateProfileDto } from '@app/user/dtos/updateProfile.dto';
+import { EmailService } from '@app/email/email.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private configService: ConfigService,
-    private jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   async createAccount(
@@ -38,6 +40,9 @@ export class UserService {
     const user = await this.userRepository.create(createAccountDto);
 
     await this.userRepository.save(user);
+
+    await this.emailService.createEmail(user);
+
     return {
       isSuccess: true,
     };
@@ -93,7 +98,14 @@ export class UserService {
     const user = await this.userRepository.findOne(userId);
     const updatedUser = { ...user, ...updateProfileDto };
     // TODO: fix @BeforeUpdate hook
-    updatedUser.password = await bcrypt.hash(updatedUser.password, 10);
+    if (updateProfileDto.password) {
+      updatedUser.password = await bcrypt.hash(updatedUser.password, 10);
+    }
+
+    if (updateProfileDto.email) {
+      this.emailService.updateEmail(user);
+    }
+
     await this.userRepository.save(updatedUser);
     return {
       isSuccess: true,
