@@ -15,8 +15,6 @@ export class EmailService {
   async verifyEmail(userId: number, code: string): Promise<CoreResponse> {
     const email = await this.emailRepository.findOne({ user: { id: userId } });
 
-    console.log(userId);
-
     if (email.isVerified) {
       return {
         isSuccess: false,
