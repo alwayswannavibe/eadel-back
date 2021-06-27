@@ -21,7 +21,14 @@ export class UserResolver {
   @Query(() => UserEntity)
   @UseGuards(AuthGuard)
   getSelf(@User() user: UserEntity) {
-    return user;
+    try {
+      return user;
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: 'Internal server error',
+      };
+    }
   }
 
   @Query(() => UserProfileResponse)
@@ -29,19 +36,40 @@ export class UserResolver {
   async getUserProfile(
     @Args() userProfileDto: UserProfileDto,
   ): Promise<UserProfileResponse> {
-    return this.userService.getUserById(userProfileDto.id);
+    try {
+      return await this.userService.getUserById(userProfileDto.id);
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: 'Internal server error',
+      };
+    }
   }
 
   @Mutation(() => CoreResponse)
   async createAccount(
     @Args('input') createAccountDto: CreateAccountDto,
   ): Promise<CoreResponse> {
-    return this.userService.createAccount(createAccountDto);
+    try {
+      return await this.userService.createAccount(createAccountDto);
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: 'Internal server error',
+      };
+    }
   }
 
   @Mutation(() => LoginResponseDto)
   async login(@Args('input') loginDto: LoginDto): Promise<LoginResponseDto> {
-    return this.userService.login(loginDto);
+    try {
+      return await this.userService.login(loginDto);
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: 'Internal server error',
+      };
+    }
   }
 
   @UseGuards(AuthGuard)
@@ -51,6 +79,13 @@ export class UserResolver {
     @User() user: UserEntity,
     @Args('input') updateProfileDto: UpdateProfileDto,
   ): Promise<CoreResponse> {
-    return this.userService.updateProfile(user.id, updateProfileDto);
+    try {
+      return await this.userService.updateProfile(user.id, updateProfileDto);
+    } catch (error) {
+      return {
+        isSuccess: false,
+        error: 'Internal server error',
+      };
+    }
   }
 }
