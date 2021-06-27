@@ -49,7 +49,10 @@ export class UserService {
   }
 
   async login({ email, password }: LoginDto): Promise<LoginResponseDto> {
-    const user = await this.userRepository.findOne({ email });
+    const user = await this.userRepository.findOne(
+      { email },
+      { select: ['password', 'id'] },
+    );
 
     if (!user) {
       return {
