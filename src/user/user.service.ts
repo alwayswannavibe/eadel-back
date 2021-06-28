@@ -7,7 +7,6 @@ import { CreateAccountDto } from '@app/user/dtos/createAccount.dto';
 import { LoginDto } from '@app/user/dtos/login.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginResponseDto } from '@app/user/dtos/loginResponse.dto';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@app/jwt/jwt.service';
 import { UserProfileResponse } from '@app/user/dtos/userProfileResponse.dto';
 import { UpdateProfileDto } from '@app/user/dtos/updateProfile.dto';
@@ -18,7 +17,6 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
   ) {}
@@ -57,7 +55,7 @@ export class UserService {
     if (!user) {
       return {
         isSuccess: false,
-        error: 'User with with email not found',
+        error: 'Email or password is wrong',
       };
     }
 
@@ -66,13 +64,15 @@ export class UserService {
     if (!isPasswordCorrect) {
       return {
         isSuccess: false,
-        error: 'Password is wrong',
+        error: 'Email or password is wrong',
       };
     }
 
+    const token = this.jwtService.sign({ id: user.id });
+
     return {
       isSuccess: true,
-      token: this.jwtService.sign({ id: user.id }),
+      token,
     };
   }
 
@@ -106,7 +106,7 @@ export class UserService {
     }
 
     if (updateProfileDto.email) {
-      this.emailService.updateEmail(user);
+      this.emailService.updateEmail(updatedUser);
     }
 
     await this.userRepository.save(updatedUser);

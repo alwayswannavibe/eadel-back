@@ -39,7 +39,7 @@ export class EmailService {
   }
 
   async updateEmail(user: UserEntity): Promise<void> {
-    await this.emailRepository.delete({ user });
+    await this.emailRepository.delete({ user: { id: user.id } });
     const updatedEmail = await this.emailRepository.create({ user });
     await this.emailRepository.save(updatedEmail);
   }
