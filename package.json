@@ -92,7 +92,8 @@
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       ".entity.ts",
-      ".type.ts"
+      ".type.ts",
+      ".dto.ts"
     ]
   }
 }
