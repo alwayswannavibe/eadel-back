@@ -1,5 +1,5 @@
 import { UserService } from '@app/user/user.service';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserEntity } from '@app/user/entities/user.entity';
 import { JwtService } from '@app/jwt/jwt.service';
@@ -8,23 +8,30 @@ import { MockRepository } from '@app/common/types/mockRepository.type';
 import { UserRole } from '@app/user/types/userRole.type';
 import * as bcrypt from 'bcrypt';
 
-const mockRepository = () => ({
+const mockRepository = {
   findOne: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
-});
+};
 
-const mockJwtService = () => ({
+const mockJwtService = {
   sign: jest.fn(() => 'Test token'),
   verify: jest.fn(),
-});
+};
 
-const mockEmailService = () => ({
+const mockEmailService = {
   verifyEmail: jest.fn(),
   createEmail: jest.fn(),
   updateEmail: jest.fn(),
   sendCode: jest.fn(),
-});
+};
+
+let compareResult = true;
+
+jest.mock('bcrypt', () => ({
+  hash: jest.fn(() => 'Hashed password'),
+  compare: jest.fn(() => compareResult),
+}));
 
 describe('UserService', () => {
   let userService: UserService;
@@ -33,20 +40,20 @@ describe('UserService', () => {
   let userRepository: MockRepository<UserEntity>;
 
   beforeEach(async () => {
-    const module = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
         {
           provide: getRepositoryToken(UserEntity),
-          useValue: mockRepository(),
+          useValue: mockRepository,
         },
         {
           provide: JwtService,
-          useValue: mockJwtService(),
+          useValue: mockJwtService,
         },
         {
           provide: EmailService,
-          useValue: mockEmailService(),
+          useValue: mockEmailService,
         },
       ],
     }).compile();
@@ -57,12 +64,16 @@ describe('UserService', () => {
     userRepository = module.get(getRepositoryToken(UserEntity));
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should be defined', () => {
     expect(userService).toBeDefined();
   });
 
   describe('createAccount', () => {
-    it('should return error if email already taken', async () => {
+    it('should return an error if email already taken', async () => {
       userRepository.findOne.mockResolvedValue({
         id: 1,
         email: 'test@gmail.com',
@@ -117,7 +128,7 @@ describe('UserService', () => {
       role: UserRole.Client,
     };
 
-    it("should return error if user doesn't exist", async () => {
+    it("should return an error if user doesn't exist", async () => {
       userRepository.findOne.mockResolvedValue(null);
 
       const result = await userService.login(accountData);
@@ -125,11 +136,11 @@ describe('UserService', () => {
       expect(userRepository.findOne).toHaveBeenCalledTimes(1);
       expect(result).toMatchObject({
         isSuccess: false,
-        error: 'Email or password is wrong',
+        error: 'Email or password are wrong',
       });
     });
 
-    it('should return error if password is wrong', async () => {
+    it('should return an error if password is wrong', async () => {
       userService.checkPassword = jest.fn().mockResolvedValue(false);
       userRepository.findOne.mockResolvedValue(user);
 
@@ -143,11 +154,11 @@ describe('UserService', () => {
       );
       expect(result).toMatchObject({
         isSuccess: false,
-        error: 'Email or password is wrong',
+        error: 'Email or password are wrong',
       });
     });
 
-    it('should return token if password is right', async () => {
+    it('should return a token if password is right', async () => {
       userService.checkPassword = jest.fn().mockResolvedValue(true);
       userRepository.findOne.mockResolvedValue(user);
 
@@ -178,7 +189,7 @@ describe('UserService', () => {
       role: UserRole.Client,
     };
 
-    it('should return error if user is not found', async () => {
+    it('should return an error if user is not found', async () => {
       userRepository.findOne.mockResolvedValue(null);
 
       const result = await userService.getUserById(id);
@@ -188,7 +199,7 @@ describe('UserService', () => {
       expect(result).toEqual({ isSuccess: false, error: 'User not found' });
     });
 
-    it('should return user data if user exist', async () => {
+    it('should return an user data if user exist', async () => {
       userRepository.findOne.mockResolvedValue(user);
 
       const result = await userService.getUserById(1);
@@ -213,10 +224,6 @@ describe('UserService', () => {
       };
 
       userRepository.findOne.mockResolvedValue(user);
-
-      Object.defineProperty(bcrypt, 'hash', {
-        value: jest.fn(() => 'Hashed password'),
-      });
 
       const result = await userService.updateProfile(user.id, editedData);
 
@@ -261,6 +268,41 @@ describe('UserService', () => {
       expect(result).toMatchObject({
         isSuccess: true,
       });
+    });
+  });
+
+  describe('checkPassword', () => {
+    const password = 'password';
+    const userWithHashedPassword = { password: 'hashed password' };
+
+    it('should return true if password right', async () => {
+      const result = await userService.checkPassword(
+        password,
+        userWithHashedPassword,
+      );
+
+      expect(bcrypt.compare).toHaveBeenCalledTimes(1);
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        password,
+        userWithHashedPassword.password,
+      );
+      expect(result).toEqual(true);
+    });
+
+    it('should return false if password wrong', async () => {
+      compareResult = false;
+
+      const result = await userService.checkPassword(
+        password,
+        userWithHashedPassword,
+      );
+
+      expect(bcrypt.compare).toHaveBeenCalledTimes(1);
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        password,
+        userWithHashedPassword.password,
+      );
+      expect(result).toEqual(false);
     });
   });
 });

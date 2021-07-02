@@ -47,7 +47,7 @@ const { NODE_ENV } = process.env;
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       synchronize: NODE_ENV !== 'prod',
-      logging: true,
+      logging: NODE_ENV === 'dev',
       entities: [UserEntity, EmailEntity],
     }),
     GraphQLModule.forRoot({

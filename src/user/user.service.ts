@@ -55,7 +55,7 @@ export class UserService {
     if (!user) {
       return {
         isSuccess: false,
-        error: 'Email or password is wrong',
+        error: 'Email or password are wrong',
       };
     }
 
@@ -64,7 +64,7 @@ export class UserService {
     if (!isPasswordCorrect) {
       return {
         isSuccess: false,
-        error: 'Email or password is wrong',
+        error: 'Email or password are wrong',
       };
     }
 
