@@ -136,7 +136,7 @@ describe('UserService', () => {
       expect(userRepository.findOne).toHaveBeenCalledTimes(1);
       expect(result).toMatchObject({
         isSuccess: false,
-        error: 'Email or password is wrong',
+        error: 'Email or password are wrong',
       });
     });
 
@@ -154,7 +154,7 @@ describe('UserService', () => {
       );
       expect(result).toMatchObject({
         isSuccess: false,
-        error: 'Email or password is wrong',
+        error: 'Email or password are wrong',
       });
     });
 

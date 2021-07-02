@@ -20,7 +20,7 @@ export class UserResolver {
 
   @Query(() => UserEntity)
   @UseGuards(AuthGuard)
-  getSelf(@User() user: UserEntity) {
+  self(@User() user: UserEntity) {
     try {
       return user;
     } catch (error) {
@@ -33,7 +33,7 @@ export class UserResolver {
 
   @Query(() => UserProfileResponse)
   @UseGuards(AuthGuard)
-  async getUserProfile(
+  async userProfile(
     @Args() userProfileDto: UserProfileDto,
   ): Promise<UserProfileResponse> {
     try {
