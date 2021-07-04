@@ -18,6 +18,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 import * as path from 'path';
 import { NodeMailerModule } from '@app/nodeMailer/nodeMailer.module';
+import { RestaurantModule } from '@app/restaurant/restaurant.module';
+import { RestaurantEntity } from '@app/restaurant/entities/restaurant.entity';
+import { CategoryEntity } from '@app/restaurant/entities/category.entity';
+import { AuthModule } from '@app/auth/auth.module';
 
 const { NODE_ENV } = process.env;
 
@@ -48,7 +52,7 @@ const { NODE_ENV } = process.env;
       database: process.env.DB_DATABASE,
       synchronize: NODE_ENV !== 'prod',
       logging: NODE_ENV === 'dev',
-      entities: [UserEntity, EmailEntity],
+      entities: [UserEntity, EmailEntity, RestaurantEntity, CategoryEntity],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -76,6 +80,8 @@ const { NODE_ENV } = process.env;
     UserModule,
     EmailModule,
     NodeMailerModule,
+    RestaurantModule,
+    AuthModule,
   ],
 })
 export class AppModule implements NestModule {

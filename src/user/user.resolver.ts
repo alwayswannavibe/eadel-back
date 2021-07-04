@@ -7,19 +7,18 @@ import { CreateAccountDto } from '@app/user/dtos/createAccount.dto';
 import { CoreResponse } from '@app/common/dtos/coreResponse.dto';
 import { LoginDto } from '@app/user/dtos/login.dto';
 import { LoginResponseDto } from '@app/user/dtos/loginResponse.dto';
-import { UseGuards } from '@nestjs/common/decorators/core';
-import { AuthGuard } from '@app/auth/auth.guard';
 import { User } from '@app/auth/decorators/user.decorator';
 import { UserProfileDto } from '@app/user/dtos/userProfile.dto';
 import { UserProfileResponse } from '@app/user/dtos/userProfileResponse.dto';
 import { UpdateProfileDto } from '@app/user/dtos/updateProfile.dto';
+import { Role } from '@app/auth/decorators/role.decorator';
 
 @Resolver(() => UserEntity)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
   @Query(() => UserEntity)
-  @UseGuards(AuthGuard)
+  @Role('Any')
   self(@User() user: UserEntity) {
     try {
       return user;
@@ -32,7 +31,7 @@ export class UserResolver {
   }
 
   @Query(() => UserProfileResponse)
-  @UseGuards(AuthGuard)
+  @Role('Any')
   async userProfile(
     @Args() userProfileDto: UserProfileDto,
   ): Promise<UserProfileResponse> {
@@ -72,8 +71,8 @@ export class UserResolver {
     }
   }
 
-  @UseGuards(AuthGuard)
   @Mutation(() => CoreResponse)
+  @Role('Any')
   /* eslint-disable @typescript-eslint/indent */
   async updateProfile(
     @User() user: UserEntity,
