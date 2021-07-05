@@ -22,6 +22,7 @@ import { RestaurantModule } from '@app/restaurant/restaurant.module';
 import { RestaurantEntity } from '@app/restaurant/entities/restaurant.entity';
 import { CategoryEntity } from '@app/restaurant/entities/category.entity';
 import { AuthModule } from '@app/auth/auth.module';
+import { GRAPHQL_ENDPOINT } from '@app/common/constants/graphqlEndpoint';
 
 const { NODE_ENV } = process.env;
 
@@ -51,7 +52,7 @@ const { NODE_ENV } = process.env;
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       synchronize: NODE_ENV !== 'prod',
-      logging: NODE_ENV === 'dev',
+      logging: false,
       entities: [UserEntity, EmailEntity, RestaurantEntity, CategoryEntity],
     }),
     GraphQLModule.forRoot({
@@ -87,7 +88,7 @@ const { NODE_ENV } = process.env;
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(JwtMiddleware).forRoutes({
-      path: '/graphql',
+      path: GRAPHQL_ENDPOINT,
       method: RequestMethod.POST,
     });
   }

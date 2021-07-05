@@ -1,14 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from '@app/app.module';
-import { getConnection, Repository } from "typeorm";
+import { getConnection, Repository } from 'typeorm';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as request from 'supertest';
-import { EmailEntity } from "@app/email/entities/email.entity";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { UserEntity } from "@app/user/entities/user.entity";
-
-const GRAPHQL_ENDPOINT = '/graphql';
+import { EmailEntity } from '@app/email/entities/email.entity';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { UserEntity } from '@app/user/entities/user.entity';
+import { GRAPHQL_ENDPOINT } from '@app/common/constants/graphqlEndpoint';
 
 const mockMailerService = () => ({
   sendMail: jest.fn(),
