@@ -24,5 +24,6 @@ module.exports = {
     'import/prefer-default-export': 'off',
     'class-methods-use-this': 'off',
     'arrow-body-style': 'off',
+    'object-curly-newline': 'off',
   },
 };

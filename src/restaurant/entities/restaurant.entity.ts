@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
 import { CoreEntity } from '@app/common/entities/core.entity';
 import { IsString } from 'class-validator';
-import { CategoryEntity } from '@app/restaurant/entities/category.entity';
+import { CategoryEntity } from '@app/category/entities/category.entity';
 import { UserEntity } from '@app/user/entities/user.entity';
 
 @ObjectType()

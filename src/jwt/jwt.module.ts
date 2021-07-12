@@ -1,4 +1,4 @@
-import { DynamicModule, Global, Injectable, Module } from '@nestjs/common';
+import { DynamicModule, Global, Module } from '@nestjs/common';
 import { JwtOptions } from '@app/jwt/interfaces/jwtOptions.interface';
 import { JwtService } from '@app/jwt/jwt.service';
 import { JWT_OPTIONS } from '@app/jwt/constants/jwt.constatnts';

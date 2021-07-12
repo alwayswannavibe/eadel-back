@@ -1,7 +1,5 @@
 import { UserEntity } from '@app/user/entities/user.entity';
-import {
-  Args, Mutation, Query, Resolver,
-} from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UserService } from '@app/user/user.service';
 import { CreateAccountDto } from '@app/user/dtos/createAccount.dto';
 import { CoreResponse } from '@app/common/dtos/coreResponse.dto';
@@ -20,14 +18,7 @@ export class UserResolver {
   @Query(() => UserEntity)
   @Role('Any')
   self(@User() user: UserEntity) {
-    try {
-      return user;
-    } catch (error) {
-      return {
-        isSuccess: false,
-        error: 'Internal server error',
-      };
-    }
+    return user;
   }
 
   @Query(() => UserProfileResponse)
@@ -35,40 +26,19 @@ export class UserResolver {
   async userProfile(
     @Args() userProfileDto: UserProfileDto,
   ): Promise<UserProfileResponse> {
-    try {
-      return await this.userService.getUserById(userProfileDto.id);
-    } catch (error) {
-      return {
-        isSuccess: false,
-        error: 'Internal server error',
-      };
-    }
+    return this.userService.getUserById(userProfileDto.id);
   }
 
   @Mutation(() => CoreResponse)
   async createAccount(
     @Args('input') createAccountDto: CreateAccountDto,
   ): Promise<CoreResponse> {
-    try {
-      return await this.userService.createAccount(createAccountDto);
-    } catch (error) {
-      return {
-        isSuccess: false,
-        error: 'Internal server error',
-      };
-    }
+    return this.userService.createAccount(createAccountDto);
   }
 
   @Mutation(() => LoginResponseDto)
   async login(@Args('input') loginDto: LoginDto): Promise<LoginResponseDto> {
-    try {
-      return await this.userService.login(loginDto);
-    } catch (error) {
-      return {
-        isSuccess: false,
-        error: 'Internal server error',
-      };
-    }
+    return this.userService.login(loginDto);
   }
 
   @Mutation(() => CoreResponse)
@@ -78,13 +48,6 @@ export class UserResolver {
     @User() user: UserEntity,
     @Args('input') updateProfileDto: UpdateProfileDto,
   ): Promise<CoreResponse> {
-    try {
-      return await this.userService.updateProfile(user.id, updateProfileDto);
-    } catch (error) {
-      return {
-        isSuccess: false,
-        error: 'Internal server error',
-      };
-    }
+    return this.userService.updateProfile(user.id, updateProfileDto);
   }
 }

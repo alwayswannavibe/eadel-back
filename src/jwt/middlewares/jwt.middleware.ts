@@ -1,6 +1,5 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import { JwtService } from '@app/jwt/jwt.service';
 import { UserService } from '@app/user/user.service';
 import { RequestWithUser } from '@app/jwt/interfaces/requestWithUser.interface';

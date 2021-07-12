@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RestaurantEntity } from '@app/restaurant/entities/restaurant.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CoreResponse } from '@app/common/dtos/coreResponse.dto';
 import { CreateRestaurantDto } from '@app/restaurant/dtos/createRestaurant.dto';
 import { UserEntity } from '@app/user/entities/user.entity';
-import { CategoryEntity } from '@app/restaurant/entities/category.entity';
+import { CategoryEntity } from '@app/category/entities/category.entity';
 import { UpdateRestaurantDto } from '@app/restaurant/dtos/updateRestaurant.dto';
+import { GetRestaurantsResponse } from '@app/restaurant/dtos/getRestaurantsResponse.dto';
+import { ENTITY_PER_PAGE } from '@app/common/constants/entityPerPage';
+import { GetRestaurantResponse } from '@app/restaurant/dtos/getRestaurantResponse.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -21,109 +24,145 @@ export class RestaurantService {
     owner: UserEntity,
     createRestaurantDto: CreateRestaurantDto,
   ): Promise<CoreResponse> {
-    try {
-      const restaurant = await this.restaurantRepository.create(
-        createRestaurantDto,
-      );
+    const restaurant = await this.restaurantRepository.create(
+      createRestaurantDto,
+    );
 
-      restaurant.owner = owner;
+    restaurant.owner = owner;
 
-      const category = await this.getCategory(createRestaurantDto.categoryName);
+    const category = await this.getCategory(createRestaurantDto.categoryName);
 
-      restaurant.category = category;
+    restaurant.category = category;
 
-      await this.restaurantRepository.save(restaurant);
+    await this.restaurantRepository.save(restaurant);
 
-      return {
-        isSuccess: true,
-      };
-    } catch (error) {
-      return {
-        isSuccess: false,
-        error: 'Internal server error',
-      };
-    }
+    return {
+      isSuccess: true,
+    };
   }
 
   async updateRestaurant(
     user: UserEntity,
     updateRestaurantDto: UpdateRestaurantDto,
   ): Promise<CoreResponse> {
-    try {
-      const restaurant = await this.restaurantRepository.findOne(
-        updateRestaurantDto.id,
-      );
+    const restaurant = await this.restaurantRepository.findOne(
+      updateRestaurantDto.id,
+    );
 
-      if (!restaurant) {
-        return {
-          isSuccess: false,
-          error: 'Restaurant not found',
-        };
-      }
-
-      if (restaurant.ownerId !== user.id) {
-        return {
-          isSuccess: false,
-          error: 'Access error',
-        };
-      }
-
-      let category: CategoryEntity = null;
-
-      if (updateRestaurantDto.categoryName) {
-        category = await this.getCategory(updateRestaurantDto.categoryName);
-      }
-
-      await this.restaurantRepository.save([
-        {
-          ...updateRestaurantDto,
-          ...(category ? { category } : {}),
-        },
-      ]);
-
-      return {
-        isSuccess: true,
-      };
-    } catch (error) {
+    if (!restaurant) {
       return {
         isSuccess: false,
-        error: 'Internal server error',
+        error: 'Restaurant not found',
       };
     }
+
+    if (restaurant.ownerId !== user.id) {
+      return {
+        isSuccess: false,
+        error: 'Access error',
+      };
+    }
+
+    let category: CategoryEntity = null;
+
+    if (updateRestaurantDto.categoryName) {
+      category = await this.getCategory(updateRestaurantDto.categoryName);
+    }
+
+    await this.restaurantRepository.save([
+      {
+        ...updateRestaurantDto,
+        ...(category ? { category } : {}),
+      },
+    ]);
+
+    return {
+      isSuccess: true,
+    };
   }
 
   async deleteRestaurant(
     user: UserEntity,
     restaurantId: number,
   ): Promise<CoreResponse> {
-    try {
-      const restaurant = await this.restaurantRepository.findOne(restaurantId);
+    const restaurant = await this.restaurantRepository.findOne(restaurantId);
 
-      if (!restaurant) {
-        return {
-          isSuccess: false,
-          error: 'Restaurant not found',
-        };
-      }
-
-      if (restaurant.ownerId !== user.id) {
-        return {
-          isSuccess: false,
-          error: 'Access error',
-        };
-      }
-
-      await this.restaurantRepository.delete(restaurantId);
-
-      return {
-        isSuccess: true,
-      };
-    } catch (error) {
+    if (!restaurant) {
       return {
         isSuccess: false,
-        error: 'Internal server error',
+        error: 'Restaurant not found',
       };
     }
+
+    if (restaurant.ownerId !== user.id) {
+      return {
+        isSuccess: false,
+        error: 'Access error',
+      };
+    }
+
+    await this.restaurantRepository.delete(restaurantId);
+
+    return {
+      isSuccess: true,
+    };
+  }
+
+  async getRestaurants(page: number): Promise<GetRestaurantsResponse> {
+    /* eslint-disable-next-line operator-linebreak */
+    const [restaurants, countOfRestaurants] =
+      await this.restaurantRepository.findAndCount({
+        take: ENTITY_PER_PAGE,
+        skip: (page - 1) * ENTITY_PER_PAGE,
+      });
+
+    const totalPages = Math.ceil(countOfRestaurants / ENTITY_PER_PAGE);
+
+    return {
+      isSuccess: true,
+      restaurants,
+      totalPages,
+    };
+  }
+
+  async getRestaurantById(id: number): Promise<GetRestaurantResponse> {
+    const restaurant = await this.restaurantRepository.findOne(id);
+
+    if (!restaurant) {
+      return {
+        isSuccess: false,
+        error: 'Restaurant not found',
+      };
+    }
+
+    return {
+      isSuccess: true,
+      restaurant,
+    };
+  }
+
+  async getRestaurantsBySearch(page: number, query: string) {
+    if (!query) {
+      return this.getRestaurants(page);
+    }
+
+    /* eslint-disable-next-line operator-linebreak */
+    const [restaurants, countOfRestaurants] =
+      await this.restaurantRepository.findAndCount({
+        where: {
+          name: ILike(`%${query}%`),
+        },
+        take: ENTITY_PER_PAGE,
+        skip: (page - 1) * ENTITY_PER_PAGE,
+      });
+
+    const totalPages = Math.ceil(countOfRestaurants / ENTITY_PER_PAGE);
+
+    return {
+      isSuccess: true,
+      restaurants,
+      totalPages,
+    };
   }
 
   private async getCategory(categoryName: string): Promise<CategoryEntity> {

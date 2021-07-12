@@ -1,6 +1,4 @@
-import {
-  BeforeInsert, BeforeUpdate, Column, Entity, OneToMany
-} from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import { UserRole } from '@app/user/types/userRole.type';
 import { CoreEntity } from '@app/common/entities/core.entity';
 import { Field, ObjectType } from '@nestjs/graphql';

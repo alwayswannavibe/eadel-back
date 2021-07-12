@@ -20,9 +20,10 @@ import * as path from 'path';
 import { NodeMailerModule } from '@app/nodeMailer/nodeMailer.module';
 import { RestaurantModule } from '@app/restaurant/restaurant.module';
 import { RestaurantEntity } from '@app/restaurant/entities/restaurant.entity';
-import { CategoryEntity } from '@app/restaurant/entities/category.entity';
+import { CategoryEntity } from '@app/category/entities/category.entity';
 import { AuthModule } from '@app/auth/auth.module';
 import { GRAPHQL_ENDPOINT } from '@app/common/constants/graphqlEndpoint';
+import { CategoryModule } from '@app/category/category.module';
 
 const { NODE_ENV } = process.env;
 
@@ -83,6 +84,7 @@ const { NODE_ENV } = process.env;
     NodeMailerModule,
     RestaurantModule,
     AuthModule,
+    CategoryModule,
   ],
 })
 export class AppModule implements NestModule {
