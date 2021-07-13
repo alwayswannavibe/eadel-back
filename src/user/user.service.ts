@@ -11,6 +11,7 @@ import { JwtService } from '@app/jwt/jwt.service';
 import { UserProfileResponse } from '@app/user/dtos/userProfileResponse.dto';
 import { UpdateProfileDto } from '@app/user/dtos/updateProfile.dto';
 import { EmailService } from '@app/email/email.service';
+import { Errors } from '@app/common/constants/errors';
 
 @Injectable()
 export class UserService {
@@ -31,7 +32,7 @@ export class UserService {
     if (isEmailUsed) {
       return {
         isSuccess: false,
-        error: 'This email is already taken',
+        error: Errors.EMAIL_TAKEN,
       };
     }
 
@@ -55,7 +56,7 @@ export class UserService {
     if (!user) {
       return {
         isSuccess: false,
-        error: 'Email or password are wrong',
+        error: Errors.EMAIL_OR_PASSWORD_WRONG,
       };
     }
 
@@ -64,7 +65,7 @@ export class UserService {
     if (!isPasswordCorrect) {
       return {
         isSuccess: false,
-        error: 'Email or password are wrong',
+        error: Errors.EMAIL_OR_PASSWORD_WRONG,
       };
     }
 
@@ -84,7 +85,7 @@ export class UserService {
     const user = await this.userRepository.findOne(id);
     if (!user) {
       return {
-        error: 'User not found',
+        error: Errors.NOT_FOUND,
         isSuccess: false,
       };
     }
