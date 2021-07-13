@@ -126,7 +126,9 @@ export class RestaurantService {
   }
 
   async getRestaurantById(id: number): Promise<GetRestaurantResponse> {
-    const restaurant = await this.restaurantRepository.findOne(id);
+    const restaurant = await this.restaurantRepository.findOne(id, {
+      relations: ['dishes'],
+    });
 
     if (!restaurant) {
       return {

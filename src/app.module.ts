@@ -24,6 +24,8 @@ import { CategoryEntity } from '@app/category/entities/category.entity';
 import { AuthModule } from '@app/auth/auth.module';
 import { GRAPHQL_ENDPOINT } from '@app/common/constants/graphqlEndpoint';
 import { CategoryModule } from '@app/category/category.module';
+import { DishModule } from '@app/dish/dish.module';
+import { DishEntity } from '@app/dish/entities/dish.entity';
 
 const { NODE_ENV } = process.env;
 
@@ -54,7 +56,13 @@ const { NODE_ENV } = process.env;
       database: process.env.DB_DATABASE,
       synchronize: NODE_ENV !== 'prod',
       logging: false,
-      entities: [UserEntity, EmailEntity, RestaurantEntity, CategoryEntity],
+      entities: [
+        UserEntity,
+        EmailEntity,
+        RestaurantEntity,
+        CategoryEntity,
+        DishEntity,
+      ],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -85,6 +93,7 @@ const { NODE_ENV } = process.env;
     RestaurantModule,
     AuthModule,
     CategoryModule,
+    DishModule,
   ],
 })
 export class AppModule implements NestModule {

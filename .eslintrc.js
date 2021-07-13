@@ -25,5 +25,6 @@ module.exports = {
     'class-methods-use-this': 'off',
     'arrow-body-style': 'off',
     'object-curly-newline': 'off',
+    '@typescript-eslint/indent': 'off',
   },
 };

@@ -8,13 +8,11 @@ import { UserEntity } from '@app/user/entities/user.entity';
 import { UserRole } from '@app/user/types/userRole.type';
 import { Role } from '@app/auth/decorators/role.decorator';
 import { UpdateRestaurantDto } from '@app/restaurant/dtos/updateRestaurant.dto';
-import { DeleteRestaurantDto } from '@app/restaurant/dtos/deleteRestaurant.dto';
-
 import { GetRestaurantsResponse } from '@app/restaurant/dtos/getRestaurantsResponse.dto';
 import { PaginationDto } from '@app/common/dtos/pagination.dto';
 import { GetRestaurantResponse } from '@app/restaurant/dtos/getRestaurantResponse.dto';
-import { GetRestaurantDto } from '@app/restaurant/dtos/getRestaurant.dto';
 import { GetRestaurantsBySearchDto } from '@app/restaurant/dtos/getRestaurantsBySearch.dto';
+import { IdDto } from '@app/common/dtos/id.dto';
 
 @Resolver(() => RestaurantEntity)
 export class RestaurantResolver {
@@ -22,7 +20,6 @@ export class RestaurantResolver {
 
   @Mutation(() => CoreResponse)
   @Role(UserRole.Owner)
-  /* eslint-disable @typescript-eslint/indent */
   async createRestaurant(
     @Args('input') createRestaurantDto: CreateRestaurantDto,
     @User() user: UserEntity,
@@ -42,7 +39,7 @@ export class RestaurantResolver {
   @Mutation(() => CoreResponse)
   @Role(UserRole.Owner)
   async deleteRestaurant(
-    @Args('input') deleteRestourantDto: DeleteRestaurantDto,
+    @Args('input') deleteRestourantDto: IdDto,
     @User() user: UserEntity,
   ): Promise<CoreResponse> {
     return this.restaurantService.deleteRestaurant(
@@ -52,21 +49,21 @@ export class RestaurantResolver {
   }
 
   @Query(() => GetRestaurantsResponse)
-  restaurants(
+  async restaurants(
     @Args('input') getRestaurantsDto: PaginationDto,
   ): Promise<GetRestaurantsResponse> {
     return this.restaurantService.getRestaurants(getRestaurantsDto.page);
   }
 
   @Query(() => GetRestaurantResponse)
-  restaurant(
-    @Args('input') getRestaurantDto: GetRestaurantDto,
+  async restaurant(
+    @Args('input') getRestaurantDto: IdDto,
   ): Promise<GetRestaurantResponse> {
     return this.restaurantService.getRestaurantById(getRestaurantDto.id);
   }
 
   @Query(() => GetRestaurantsResponse)
-  searchRestaurants(
+  async searchRestaurants(
     @Args('input') getRestaurantsBySearchDto: GetRestaurantsBySearchDto,
   ): Promise<GetRestaurantsResponse> {
     return this.restaurantService.getRestaurantsBySearch(
