@@ -5,7 +5,8 @@ import { Repository } from 'typeorm';
 import { AllCategoriesResponseDto } from '@app/category/dtos/allCategoriesResponse.dto';
 import { RestaurantEntity } from '@app/restaurant/entities/restaurant.entity';
 import { OneCategoryDtoResponse } from '@app/category/dtos/oneCategoryResponse.dto';
-import { ENTITY_PER_PAGE } from '@app/common/constants/entityPerPage';
+import { ENTITIES_PER_PAGE } from '@app/common/constants/entitiesPerPage';
+import { Errors } from '@app/common/constants/errors';
 
 @Injectable()
 export class CategoryService {
@@ -40,20 +41,20 @@ export class CategoryService {
     if (!category) {
       return {
         isSuccess: false,
-        error: 'Category not found',
+        error: Errors.NOT_FOUND,
       };
     }
 
     const totalPages = Math.ceil(
-      (await this.countRestaurants(category)) / ENTITY_PER_PAGE,
+      (await this.countRestaurants(category)) / ENTITIES_PER_PAGE,
     );
 
     const restaurants = await this.restaurantRepository.find({
       where: {
         category,
       },
-      take: ENTITY_PER_PAGE,
-      skip: (page - 1) * ENTITY_PER_PAGE,
+      take: ENTITIES_PER_PAGE,
+      skip: (page - 1) * ENTITIES_PER_PAGE,
     });
 
     category.restaurants = restaurants;

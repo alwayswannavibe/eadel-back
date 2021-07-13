@@ -8,8 +8,9 @@ import { UserEntity } from '@app/user/entities/user.entity';
 import { CategoryEntity } from '@app/category/entities/category.entity';
 import { UpdateRestaurantDto } from '@app/restaurant/dtos/updateRestaurant.dto';
 import { GetRestaurantsResponse } from '@app/restaurant/dtos/getRestaurantsResponse.dto';
-import { ENTITY_PER_PAGE } from '@app/common/constants/entityPerPage';
+import { ENTITIES_PER_PAGE } from '@app/common/constants/entitiesPerPage';
 import { GetRestaurantResponse } from '@app/restaurant/dtos/getRestaurantResponse.dto';
+import { Errors } from '@app/common/constants/errors';
 
 @Injectable()
 export class RestaurantService {
@@ -21,14 +22,14 @@ export class RestaurantService {
   ) {}
 
   async createRestaurant(
-    owner: UserEntity,
+    user: UserEntity,
     createRestaurantDto: CreateRestaurantDto,
   ): Promise<CoreResponse> {
     const restaurant = await this.restaurantRepository.create(
       createRestaurantDto,
     );
 
-    restaurant.owner = owner;
+    restaurant.owner = user;
 
     const category = await this.getCategory(createRestaurantDto.categoryName);
 
@@ -52,14 +53,14 @@ export class RestaurantService {
     if (!restaurant) {
       return {
         isSuccess: false,
-        error: 'Restaurant not found',
+        error: Errors.NOT_FOUND,
       };
     }
 
     if (restaurant.ownerId !== user.id) {
       return {
         isSuccess: false,
-        error: 'Access error',
+        error: Errors.PERMISSON_ERROR,
       };
     }
 
@@ -69,12 +70,10 @@ export class RestaurantService {
       category = await this.getCategory(updateRestaurantDto.categoryName);
     }
 
-    await this.restaurantRepository.save([
-      {
-        ...updateRestaurantDto,
-        ...(category ? { category } : {}),
-      },
-    ]);
+    await this.restaurantRepository.save({
+      ...updateRestaurantDto,
+      ...(category ? { category } : {}),
+    });
 
     return {
       isSuccess: true,
@@ -90,14 +89,14 @@ export class RestaurantService {
     if (!restaurant) {
       return {
         isSuccess: false,
-        error: 'Restaurant not found',
+        error: Errors.NOT_FOUND,
       };
     }
 
     if (restaurant.ownerId !== user.id) {
       return {
         isSuccess: false,
-        error: 'Access error',
+        error: Errors.PERMISSON_ERROR,
       };
     }
 
@@ -112,11 +111,11 @@ export class RestaurantService {
     /* eslint-disable-next-line operator-linebreak */
     const [restaurants, countOfRestaurants] =
       await this.restaurantRepository.findAndCount({
-        take: ENTITY_PER_PAGE,
-        skip: (page - 1) * ENTITY_PER_PAGE,
+        take: ENTITIES_PER_PAGE,
+        skip: (page - 1) * ENTITIES_PER_PAGE,
       });
 
-    const totalPages = Math.ceil(countOfRestaurants / ENTITY_PER_PAGE);
+    const totalPages = Math.ceil(countOfRestaurants / ENTITIES_PER_PAGE);
 
     return {
       isSuccess: true,
@@ -133,7 +132,7 @@ export class RestaurantService {
     if (!restaurant) {
       return {
         isSuccess: false,
-        error: 'Restaurant not found',
+        error: Errors.NOT_FOUND,
       };
     }
 
@@ -154,11 +153,11 @@ export class RestaurantService {
         where: {
           name: ILike(`%${query}%`),
         },
-        take: ENTITY_PER_PAGE,
-        skip: (page - 1) * ENTITY_PER_PAGE,
+        take: ENTITIES_PER_PAGE,
+        skip: (page - 1) * ENTITIES_PER_PAGE,
       });
 
-    const totalPages = Math.ceil(countOfRestaurants / ENTITY_PER_PAGE);
+    const totalPages = Math.ceil(countOfRestaurants / ENTITIES_PER_PAGE);
 
     return {
       isSuccess: true,
@@ -167,17 +166,17 @@ export class RestaurantService {
     };
   }
 
-  private async getCategory(categoryName: string): Promise<CategoryEntity> {
+  async getCategory(categoryName: string): Promise<CategoryEntity> {
     const formatedCategoryName = categoryName.toLowerCase().trim();
     const slug = formatedCategoryName.replace(/\s+/g, '-');
 
     let category = await this.categoryRepository.findOne({ slug });
     if (!category) {
-      const newCategory = await this.categoryRepository.create({
+      category = await this.categoryRepository.create({
         slug,
         name: formatedCategoryName,
       });
-      category = await this.categoryRepository.save(newCategory);
+      await this.categoryRepository.save(category);
     }
     return category;
   }
