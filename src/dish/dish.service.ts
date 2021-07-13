@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { DishEntity } from '@app/dish/entities/dish.entity';
 import { UpdateDishDto } from '@app/dish/dtos/updateDish.dto';
 import { IdDto } from '@app/common/dtos/id.dto';
+import { Errors } from '@app/common/constants/errors';
 
 @Injectable()
 export class DishService {
@@ -29,18 +30,21 @@ export class DishService {
     if (!restaurant) {
       return {
         isSuccess: false,
-        error: 'No restaurant found',
+        error: Errors.NOT_FOUND,
       };
     }
 
     if (restaurant.ownerId !== user.id) {
       return {
         isSuccess: false,
-        error: "You haven't permission",
+        error: Errors.PERMISSON_ERROR,
       };
     }
 
-    const dish = this.dishRepository.create({ ...createDishDto, restaurant });
+    const dish = await this.dishRepository.create({
+      ...createDishDto,
+      restaurant,
+    });
     await this.dishRepository.save(dish);
 
     return {
@@ -59,14 +63,14 @@ export class DishService {
     if (!dish) {
       return {
         isSuccess: false,
-        error: 'Dish not found',
+        error: Errors.NOT_FOUND,
       };
     }
 
     if (dish.restaurant.ownerId !== user.id) {
       return {
         isSuccess: false,
-        error: "You haven't permission",
+        error: Errors.PERMISSON_ERROR,
       };
     }
 
@@ -88,14 +92,14 @@ export class DishService {
     if (!dish) {
       return {
         isSuccess: false,
-        error: 'Dish not found',
+        error: Errors.NOT_FOUND,
       };
     }
 
     if (dish.restaurant.ownerId !== user.id) {
       return {
         isSuccess: false,
-        error: "You haven't permission",
+        error: Errors.PERMISSON_ERROR,
       };
     }
 
