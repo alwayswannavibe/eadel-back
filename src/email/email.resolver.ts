@@ -5,15 +5,14 @@ import { CoreResponse } from '@app/common/dtos/coreResponse.dto';
 import { VerifyEmailDto } from '@app/email/dtos/verifyEmail.dto';
 import { User } from '@app/auth/decorators/user.decorator';
 import { UserEntity } from '@app/user/entities/user.entity';
-import { UseGuards } from '@nestjs/common/decorators/core';
-import { AuthGuard } from '@app/auth/auth.guard';
+import { Role } from '@app/auth/decorators/role.decorator';
 
 @Resolver(() => EmailEntity)
 export class EmailResolver {
   constructor(private readonly emailService: EmailService) {}
 
   @Mutation(() => CoreResponse)
-  @UseGuards(AuthGuard)
+  @Role('Any')
   /* eslint-disable @typescript-eslint/indent */
   async verifyEmail(
     @Args('input') verifyEmailDto: VerifyEmailDto,
@@ -30,7 +29,7 @@ export class EmailResolver {
   }
 
   @Mutation(() => CoreResponse)
-  @UseGuards(AuthGuard)
+  @Role('Any')
   async sendCode(@User() user: UserEntity) {
     return this.emailService.sendCode(user);
   }

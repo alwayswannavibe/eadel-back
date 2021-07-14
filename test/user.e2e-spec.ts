@@ -1,14 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from '@app/app.module';
-import { getConnection, Repository } from "typeorm";
+import { getConnection, Repository } from 'typeorm';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as request from 'supertest';
-import { EmailEntity } from "@app/email/entities/email.entity";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { UserEntity } from "@app/user/entities/user.entity";
-
-const GRAPHQL_ENDPOINT = '/graphql';
+import { EmailEntity } from '@app/email/entities/email.entity';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { UserEntity } from '@app/user/entities/user.entity';
+import { GRAPHQL_ENDPOINT } from '@app/common/constants/graphqlEndpoint';
+import { UserRole } from '@app/user/types/userRole.type';
+import { Errors } from '@app/common/constants/errors';
+import { User } from '@app/auth/decorators/user.decorator';
 
 const mockMailerService = () => ({
   sendMail: jest.fn(),
@@ -68,111 +70,125 @@ describe('User (e2e)', () => {
   };
 
   describe('createAccount', () => {
-    it('should create account', () => {
-      return publicRequest(
+    it('should create the account', async () => {
+      const response = await publicRequest(
         `mutation {
             createAccount(
-              input: { email: "test@gmail.com", password: "123", role: Client }
+              input: { 
+                email: "${user.email}",
+                password: "${user.password}",
+                role: Client
+              }
             ) {
               isSuccess
               error
             }
           }`,
-      )
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.data.createAccount.isSuccess).toEqual(true);
-          expect(res.body.data.createAccount.error).toEqual(null);
-        });
+      );
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.createAccount.isSuccess).toEqual(true);
+      expect(response.body.data.createAccount.error).toEqual(null);
     });
 
-    it('should return error if account already exist', () => {
-      return publicRequest(
+    it('should return an error if the account already exist', async () => {
+      const response = await publicRequest(
         `mutation {
             createAccount(
-              input: { email: "${user.email}", password: "${user.password}", role: Client }
+              input: { 
+                email: "${user.email}"
+                password: "${user.password}"
+                role: Client
+              }
             ) {
               isSuccess
               error
             }
           }`,
-      )
-        .expect(200)
-        .expect((res) => {
-          const { createAccount } = res.body.data;
-          expect(createAccount.isSuccess).toEqual(false);
-          expect(createAccount.error).toEqual('This email is already taken');
-        });
+      );
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.createAccount.isSuccess).toEqual(false);
+      expect(response.body.data.createAccount.error).toEqual(
+        Errors.EMAIL_TAKEN,
+      );
     });
   });
 
   describe('login', () => {
-    it('should login', () => {
-      return publicRequest(
+    it('should login', async () => {
+      const response = await publicRequest(
         `mutation {
             login(
-              input: { email: "${user.email}" , password: "${user.password}" }
+              input: {
+                email: "${user.email}"
+                password: "${user.password}"
+              }
             ) {
               isSuccess
               error
               token
             }
           }`,
-      )
-        .expect(200)
-        .expect((res) => {
-          const { login } = res.body.data;
-          expect(login.isSuccess).toEqual(true);
-          expect(login.error).toEqual(null);
-          expect(login.token).toEqual(expect.any(String));
-          token = login.token;
-        });
+      );
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.login.isSuccess).toEqual(true);
+      expect(response.body.data.login.error).toEqual(null);
+      expect(response.body.data.login.token).toEqual(expect.any(String));
+      token = response.body.data.login.token;
     });
 
-    it('should return error if email is wrong', () => {
-      return publicRequest(
+    it('should return an error if the email is wrong', async () => {
+      const response = await publicRequest(
         `mutation {
             login(
-              input: { email: "wrong@gmail.com", password: "${user.password}"}
+              input: {
+                email: "wrong@gmail.com"
+                password: "${user.password}"
+              }
             ) {
               isSuccess
               error
               token
             }
           }`,
-      )
-        .expect(200)
-        .expect((res) => {
-          const { login } = res.body.data;
-          expect(login.isSuccess).toEqual(false);
-          expect(login.error).toBe('Email or password are wrong');
-        });
+      );
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.login.isSuccess).toEqual(false);
+      expect(response.body.data.login.error).toBe(
+        Errors.EMAIL_OR_PASSWORD_WRONG,
+      );
     });
 
-    it('should return error if password is wrong', () => {
-      publicRequest(
+    it('should return an error if the password is wrong', async () => {
+      const response = await publicRequest(
         `mutation {
             login(
-              input: { email: "${user.email}", password: "wrong"}
+              input: {
+                email: "${user.email}"
+                password: "wrong"
+              }
             ) {
               isSuccess
               error
               token
             }
           }`,
-      )
-        .expect(200)
-        .expect((res) => {
-          const { login } = res.body.data;
-          expect(login.isSuccess).toEqual(false);
-          expect(login.error).toBe('Email or password are wrong');
-        });
+      );
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.login.isSuccess).toEqual(false);
+      expect(response.body.data.login.error).toBe(
+        Errors.EMAIL_OR_PASSWORD_WRONG,
+      );
     });
   });
 
   describe('self', () => {
-    it('shoud return self account if token correct', () => {
-      return privateRequest(`
+    it('shoud return the account if token correct', async () => {
+      const response = await privateRequest(`
         {
           self {
             email
@@ -180,18 +196,16 @@ describe('User (e2e)', () => {
             role
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const { email, id, role } = res.body.data.self;
-          expect(email).toEqual(user.email);
-          expect(id).toEqual(1);
-          expect(role).toEqual('Client');
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.self.email).toEqual(user.email);
+      expect(response.body.data.self.id).toEqual(1);
+      expect(response.body.data.self.role).toEqual("Client");
     });
 
-    it('shoud return error if token wrong or empty', () => {
-      return publicRequest(`
+    it('shoud return ab error if the token wrong or empty', async () => {
+      const response = await publicRequest(`
         {
           self {
             email
@@ -199,18 +213,18 @@ describe('User (e2e)', () => {
             role
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const [error] = res.body.errors;
-          expect(error.message).toEqual('Forbidden resource');
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.errors[0].message).toEqual(
+        Errors.FORBIDDEN_RESOURCE,
+      );
     });
   });
 
   describe('userProfile', () => {
-    it('should return user profile info', () => {
-      return privateRequest(`
+    it('should return the user profile info', async () => {
+      const response = await privateRequest(`
         {
           userProfile(id: 1) {
             user {
@@ -221,20 +235,17 @@ describe('User (e2e)', () => {
             error
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const { email, role } = res.body.data.userProfile.user;
-          const { isSuccess, error } = res.body.data.userProfile;
-          expect(isSuccess).toEqual(true);
-          expect(error).toEqual(null);
-          expect(email).toEqual(user.email);
-          expect(role).toEqual('Client');
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.userProfile.isSuccess).toEqual(true);
+      expect(response.body.data.userProfile.error).toEqual(null);
+      expect(response.body.data.userProfile.user.email).toEqual(user.email);
+      expect(response.body.data.userProfile.user.role).toEqual("Client");
     });
 
-    it("should return error if user doesn't exist", () => {
-      return privateRequest(`
+    it("should return an error if the user doesn't exist", async () => {
+      const response = await privateRequest(`
         {
           userProfile(id: 1000) {
             user {
@@ -245,19 +256,16 @@ describe('User (e2e)', () => {
             error
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const userResponse = res.body.data.userProfile.user;
-          const { isSuccess, error } = res.body.data.userProfile;
-          expect(isSuccess).toEqual(false);
-          expect(error).toEqual('User not found');
-          expect(userResponse).toEqual(null);
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.userProfile.isSuccess).toEqual(false);
+      expect(response.body.data.userProfile.error).toEqual(Errors.NOT_FOUND);
+      expect(response.body.data.userProfile.user).toEqual(null);
     });
 
-    it('should return error if token is wrong or empty', () => {
-      return publicRequest(`
+    it('should return an error if the token is wrong or empty', async () => {
+      const response = await publicRequest(`
         {
           userProfile(id: 1) {
             user {
@@ -268,47 +276,45 @@ describe('User (e2e)', () => {
             error
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const [error] = res.body.errors;
-          expect(error.message).toEqual('Forbidden resource');
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.errors[0].message).toEqual(
+        Errors.FORBIDDEN_RESOURCE,
+      );
     });
   });
 
   describe('sendCode', () => {
-    it('should send code', () => {
-      return privateRequest(`mutation {
+    it('should send the code', async () => {
+      const response = await privateRequest(`mutation {
           sendCode {
             isSuccess
             error
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const { isSuccess, error } = res.body.data.sendCode;
-          expect(error).toEqual(null);
-          expect(isSuccess).toEqual(true);
-          expect(mailerService.sendMail).toHaveBeenCalledTimes(1);
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.sendCode.error).toEqual(null);
+      expect(response.body.data.sendCode.isSuccess).toEqual(true);
+      expect(mailerService.sendMail).toHaveBeenCalledTimes(1);
     });
 
-    it('should return error if token is wrong or empty', () => {
-      return publicRequest(`mutation {
+    it('should return an error if the token is wrong or empty', async () => {
+      const response = await publicRequest(`mutation {
           sendCode {
             isSuccess
             error
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const [error] = res.body.errors;
-          expect(error.message).toEqual('Forbidden resource');
-          expect(mailerService.sendMail).toHaveBeenCalledTimes(0);
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.errors[0].message).toEqual(
+        Errors.FORBIDDEN_RESOURCE,
+      );
+      expect(mailerService.sendMail).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -319,8 +325,8 @@ describe('User (e2e)', () => {
       verificationCode = email.code;
     });
 
-    it('should verify email', () => {
-      return privateRequest(`mutation {
+    it('should verify the email', async () => {
+      const response = await privateRequest(`mutation {
           verifyEmail (
             input: { code: "${verificationCode}" }
           ) {
@@ -328,19 +334,17 @@ describe('User (e2e)', () => {
             error
           }
         }
-      `)
-        .expect(200)
-        .expect(async (res) => {
-          const { isSuccess, error } = res.body.data.verifyEmail;
-          const [email] = await emailRepository.find();
-          expect(error).toEqual(null);
-          expect(isSuccess).toEqual(true);
-          expect(email.isVerified).toEqual(true);
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      const [email] = await emailRepository.find();
+      expect(response.body.data.verifyEmail.error).toEqual(null);
+      expect(response.body.data.verifyEmail.isSuccess).toEqual(true);
+      expect(email.isVerified).toEqual(true);
     });
 
-    it('should return error if token is wrong or empty', () => {
-      return publicRequest(`mutation {
+    it('should return an error if the token is wrong or empty', async () => {
+      const response = await publicRequest(`mutation {
           verifyEmail (
             input: { code: "${verificationCode}" }
           ) {
@@ -348,13 +352,13 @@ describe('User (e2e)', () => {
             error
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const [error] = res.body.errors;
-          expect(error.message).toEqual('Forbidden resource');
-          expect(mailerService.sendMail).toHaveBeenCalledTimes(0);
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.errors[0].message).toEqual(
+        Errors.FORBIDDEN_RESOURCE,
+      );
+      expect(mailerService.sendMail).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -364,8 +368,8 @@ describe('User (e2e)', () => {
       password: 'new',
     };
 
-    it('should update email', () => {
-      return privateRequest(`mutation {
+    it('should update the email', async () => {
+      const response = await privateRequest(`mutation {
           updateProfile (
             input: { email: "${newUser.email}" }
           ) {
@@ -373,21 +377,19 @@ describe('User (e2e)', () => {
             error
           }
         }
-      `)
-        .expect(200)
-        .expect(async (res) => {
-          const { isSuccess, error } = res.body.data.updateProfile;
-          const [updatedUser] = await userRepository.find();
-          const [email] = await emailRepository.find();
-          expect(error).toEqual(null);
-          expect(isSuccess).toEqual(true);
-          expect(updatedUser.email).toEqual(newUser.email);
-          expect(email.isVerified).toEqual(false);
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      const [updatedUser] = await userRepository.find();
+      const [email] = await emailRepository.find();
+      expect(response.body.data.updateProfile.error).toEqual(null);
+      expect(response.body.data.updateProfile.isSuccess).toEqual(true);
+      expect(updatedUser.email).toEqual(newUser.email);
+      expect(email.isVerified).toEqual(false);
     });
 
-    it('should update password', () => {
-      return privateRequest(`mutation {
+    it('should update the password', async () => {
+      const response = await privateRequest(`mutation {
           updateProfile (
             input: { password: "${newUser.password}" }
           ) {
@@ -395,17 +397,15 @@ describe('User (e2e)', () => {
             error
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const { isSuccess, error } = res.body.data.updateProfile;
-          expect(error).toEqual(null);
-          expect(isSuccess).toEqual(true);
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.data.updateProfile.error).toEqual(null);
+      expect(response.body.data.updateProfile.isSuccess).toEqual(true);
     });
 
-    it('should return error if token is wrong or empty', () => {
-      return publicRequest(`mutation {
+    it('should return an error if the token is wrong or empty', async () => {
+      const response = await publicRequest(`mutation {
           updateProfile (
             input: { password: "${newUser.password}" }
           ) {
@@ -413,12 +413,12 @@ describe('User (e2e)', () => {
             error
           }
         }
-      `)
-        .expect(200)
-        .expect((res) => {
-          const [error] = res.body.errors;
-          expect(error.message).toEqual('Forbidden resource');
-        });
+      `);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.errors[0].message).toEqual(
+        Errors.FORBIDDEN_RESOURCE,
+      );
     });
   });
 });

@@ -18,6 +18,14 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 import * as path from 'path';
 import { NodeMailerModule } from '@app/nodeMailer/nodeMailer.module';
+import { RestaurantModule } from '@app/restaurant/restaurant.module';
+import { RestaurantEntity } from '@app/restaurant/entities/restaurant.entity';
+import { CategoryEntity } from '@app/category/entities/category.entity';
+import { AuthModule } from '@app/auth/auth.module';
+import { GRAPHQL_ENDPOINT } from '@app/common/constants/graphqlEndpoint';
+import { CategoryModule } from '@app/category/category.module';
+import { DishModule } from '@app/dish/dish.module';
+import { DishEntity } from '@app/dish/entities/dish.entity';
 
 const { NODE_ENV } = process.env;
 
@@ -47,8 +55,14 @@ const { NODE_ENV } = process.env;
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       synchronize: NODE_ENV !== 'prod',
-      logging: NODE_ENV === 'dev',
-      entities: [UserEntity, EmailEntity],
+      logging: false,
+      entities: [
+        UserEntity,
+        EmailEntity,
+        RestaurantEntity,
+        CategoryEntity,
+        DishEntity,
+      ],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -76,12 +90,16 @@ const { NODE_ENV } = process.env;
     UserModule,
     EmailModule,
     NodeMailerModule,
+    RestaurantModule,
+    AuthModule,
+    CategoryModule,
+    DishModule,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(JwtMiddleware).forRoutes({
-      path: '/graphql',
+      path: GRAPHQL_ENDPOINT,
       method: RequestMethod.POST,
     });
   }

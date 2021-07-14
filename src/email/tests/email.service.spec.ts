@@ -57,6 +57,7 @@ describe('EmailService', () => {
     role: UserRole.Client,
     createdAt: new Date(),
     updatedAt: new Date(),
+    restaurants: [],
   };
 
   describe('verifyEmail', () => {
